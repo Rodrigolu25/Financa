@@ -3,22 +3,28 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from sqlalchemy import func
 import os
-import sys
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(os.path.dirname(__file__), 'financas.db')
+
+# Database configuration
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///financas.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.secret_key = 'sua_chave_secreta_aqui'
+app.secret_key = os.getenv('SECRET_KEY', 'dev-secret-key')
 
 db = SQLAlchemy(app)
 
-# Modelos
+# Models
 class Ganho(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     valor = db.Column(db.Float, nullable=False)
     data = db.Column(db.Date, nullable=False)
     origem = db.Column(db.String(50), nullable=False)
     ativo = db.Column(db.Boolean, default=True, nullable=False)
+    descricao = db.Column(db.String(200))
 
 class Despesa(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -26,6 +32,7 @@ class Despesa(db.Model):
     data = db.Column(db.Date, nullable=False)
     categoria = db.Column(db.String(50), nullable=False)
     ativo = db.Column(db.Boolean, default=True, nullable=False)
+    descricao = db.Column(db.String(200))
 
 class CartaoCredito(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -33,6 +40,7 @@ class CartaoCredito(db.Model):
     data = db.Column(db.Date, nullable=False)
     parcela = db.Column(db.String(20), nullable=False)
     ativo = db.Column(db.Boolean, default=True, nullable=False)
+    descricao = db.Column(db.String(200))
 
 class Donativo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -40,8 +48,9 @@ class Donativo(db.Model):
     data = db.Column(db.Date, nullable=False)
     instituicao = db.Column(db.String(100), nullable=False)
     ativo = db.Column(db.Boolean, default=True, nullable=False)
+    descricao = db.Column(db.String(200))
 
-# Cria banco de dados
+# Create database tables
 with app.app_context():
     db.create_all()
 
@@ -159,8 +168,4 @@ def excluir_movimentacao(tipo, id):
         return jsonify({'success': False, 'message': str(e)}), 500
 
 if __name__ == '__main__':
-    try:
-        app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 8080)), debug=False)
-    except KeyboardInterrupt:
-        print("\nServidor encerrado.")
-        sys.exit(0)
+    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
