@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4>Adicionar Movimentação</h4>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('adicionar_movimentacao') }}">
+                <div class="mb-3">
+                    <label for="tipo" class="form-label">Tipo de Movimentação *</label>
+                    <select class="form-select" id="tipo" name="tipo" required>
+                        <option value="">Selecione...</option>
+                        <option value="ganho">Ganho</option>
+                        <option value="despesa">Despesa</option>
+                        <option value="cartao">Cartão de Crédito</option>
+                        <option value="donativo">Donativo</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="valor" class="form-label">Valor (R$) *</label>
+                    <input type="number" class="form-control" id="valor" name="valor" step="0.01" min="0.01" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="data" class="form-label">Data *</label>
+                    <input type="date" class="form-control" id="data" name="data" required>
+                </div>
+
+                <div id="ganhoFields" class="mb-3" style="display: none;">
+                    <label for="origem" class="form-label">Origem do Ganho *</label>
+                    <select class="form-select" id="origem" name="origem">
+                        <option value="">Selecione...</option>
+                        <option value="Restaurante Fixo">Restaurante Fixo</option>
+                        <option value="iFood">iFood</option>
+                        <option value="Outros">Outros</option>
+                    </select>
+                </div>
+
+                <div id="despesaFields" class="mb-3" style="display: none;">
+                    <label for="categoria" class="form-label">Categoria *</label>
+                    <select class="form-select" id="categoria" name="categoria">
+                        <option value="">Selecione...</option>
+                        <option value="Alimentação">Alimentação</option>
+                        <option value="Transporte">Transporte</option>
+                        <option value="Moradia">Moradia</option>
+                        <option value="Lazer">Lazer</option>
+                        <option value="Saúde">Saúde</option>
+                        <option value="Outros">Outros</option>
+                    </select>
+                </div>
+
+                <div id="cartaoFields" class="mb-3" style="display: none;">
+                    <label for="parcela" class="form-label">Parcelamento *</label>
+                    <select class="form-select" id="parcela" name="parcela">
+                        <option value="">Selecione...</option>
+                        <option value="À vista">À vista</option>
+                        <option value="1/2">2x</option>
+                        <option value="1/3">3x</option>
+                        <option value="1/4">4x</option>
+                        <option value="1/5">5x</option>
+                        <option value="1/6">6x</option>
+                        <option value="1/10">10x</option>
+                        <option value="1/12">12x</option>
+                    </select>
+                </div>
+
+                <div id="donativoFields" class="mb-3" style="display: none;">
+                    <label for="instituicao" class="form-label">Instituição *</label>
+                    <input type="text" class="form-control" id="instituicao" name="instituicao">
+                </div>
+
+                <button type="submit" class="btn btn-primary">Salvar</button>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('tipo').addEventListener('change', function() {
+    // Esconde todos os campos específicos
+    document.getElementById('ganhoFields').style.display = 'none';
+    document.getElementById('despesaFields').style.display = 'none';
+    document.getElementById('cartaoFields').style.display = 'none';
+    document.getElementById('donativoFields').style.display = 'none';
+    
+    // Mostra apenas os campos do tipo selecionado
+    if (this.value === 'ganho') {
+        document.getElementById('ganhoFields').style.display = 'block';
+    } else if (this.value === 'despesa') {
+        document.getElementById('despesaFields').style.display = 'block';
+    } else if (this.value === 'cartao') {
+        document.getElementById('cartaoFields').style.display = 'block';
+    } else if (this.value === 'donativo') {
+        document.getElementById('donativoFields').style.display = 'block';
+    }
+});
+</script>
+{% endblock %}

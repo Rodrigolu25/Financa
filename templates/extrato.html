@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">Extrato Financeiro</h4>
+            <form class="d-flex" method="GET" action="{{ url_for('extrato') }}">
+                <select class="form-select me-2" name="tipo">
+                    <option value="todos" {% if request.args.get('tipo') == 'todos' %}selected{% endif %}>Todos</option>
+                    <option value="ganhos" {% if request.args.get('tipo') == 'ganhos' %}selected{% endif %}>Ganhos</option>
+                    <option value="despesas" {% if request.args.get('tipo') == 'despesas' %}selected{% endif %}>Despesas</option>
+                    <option value="cartao" {% if request.args.get('tipo') == 'cartao' %}selected{% endif %}>Cartão</option>
+                    <option value="donativos" {% if request.args.get('tipo') == 'donativos' %}selected{% endif %}>Donativos</option>
+                </select>
+                <button type="submit" class="btn btn-light">Filtrar</button>
+            </form>
+        </div>
+        
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Tipo</th>
+                            <th>Descrição</th>
+                            <th class="text-end">Valor (R$)</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for mov in movimentacoes %}
+                        <tr>
+                            <td>{{ mov.data.strftime('%d/%m/%Y') }}</td>
+                            <td>
+                                {% if mov.__class__.__name__ == 'Ganho' %}
+                                    <span class="badge bg-success">Ganho</span>
+                                {% elif mov.__class__.__name__ == 'Despesa' %}
+                                    <span class="badge bg-danger">Despesa</span>
+                                {% elif mov.__class__.__name__ == 'CartaoCredito' %}
+                                    <span class="badge bg-warning">Cartão</span>
+                                {% else %}
+                                    <span class="badge bg-info">Donativo</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if mov.__class__.__name__ == 'Ganho' %}
+                                    {{ mov.origem }}
+                                {% elif mov.__class__.__name__ == 'Despesa' %}
+                                    {{ mov.categoria }}
+                                {% elif mov.__class__.__name__ == 'CartaoCredito' %}
+                                    {{ mov.parcela }}
+                                {% else %}
+                                    {{ mov.instituicao }}
+                                {% endif %}
+                            </td>
+                            <td class="text-end">{{ "%.2f"|format(mov.valor) }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-danger btn-excluir" 
+                                        data-tipo="{{ 'ganho' if mov.__class__.__name__ == 'Ganho' else 'despesa' if mov.__class__.__name__ == 'Despesa' else 'cartao' if mov.__class__.__name__ == 'CartaoCredito' else 'donativo' }}" 
+                                        data-id="{{ mov.id }}">
+                                    <i class="bi bi-trash"></i> Excluir
+                                </button>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">
+                                Nenhuma movimentação encontrada
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Configura os botões de exclusão
+    document.querySelectorAll('.btn-excluir').forEach(btn => {
+        btn.addEventListener('click', function() {
+            if (confirm('Tem certeza que deseja excluir este item?')) {
+                const tipo = this.getAttribute('data-tipo');
+                const id = this.getAttribute('data-id');
+                
+                fetch(`/excluir/${tipo}/${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => { throw err; });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Remove a linha da tabela com animação
+                        const row = this.closest('tr');
+                        row.style.transition = 'opacity 0.3s';
+                        row.style.opacity = '0';
+                        setTimeout(() => row.remove(), 300);
+                        
+                        // Mostra mensagem de sucesso
+                        const alertDiv = document.createElement('div');
+                        alertDiv.className = 'alert alert-success alert-dismissible fade show mt-3';
+                        alertDiv.innerHTML = `
+                            ${data.message}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        `;
+                        document.querySelector('.container').prepend(alertDiv);
+                    } else {
+                        throw new Error(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    alert(`Erro ao excluir: ${error.message}`);
+                });
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
