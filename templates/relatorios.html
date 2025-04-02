@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4><i class="bi bi-graph-up"></i> Relatórios Financeiros</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <h5 class="card-title"><i class="bi bi-calendar-month"></i> Relatório Mensal</h5>
+                            <p class="card-text">Analise seus ganhos e gastos detalhados por mês</p>
+                            <a href="{{ url_for('relatorio_mensal') }}" class="btn btn-primary mt-3">
+                                Acessar Relatório Mensal
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <h5 class="card-title"><i class="bi bi-calendar"></i> Relatório Anual</h5>
+                            <p class="card-text">Visão consolidada do seu ano financeiro</p>
+                            <a href="{{ url_for('relatorio_anual') }}" class="btn btn-primary mt-3">
+                                Acessar Relatório Anual
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

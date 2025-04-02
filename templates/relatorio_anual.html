@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    {% if not ano %}
+    <!-- Formulário para selecionar o ano -->
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4>Selecionar Ano</h4>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('relatorio_anual') }}">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Ano</label>
+                        <select class="form-select" name="ano" required>
+                            {% for ano in range(now.year-5, now.year+1) %}
+                                <option value="{{ ano }}" {% if ano == now.year %}selected{% endif %}>{{ ano }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search"></i> Gerar Relatório
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    {% else %}
+    <!-- Resultado do relatório anual -->
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4>Relatório Anual - {{ ano }}</h4>
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card text-white bg-success mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Ganhos</h5>
+                            <p class="card-text h4">R$ {{ "%.2f"|format(total_ganhos) }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-info mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Salários</h5>
+                            <p class="card-text h4">R$ {{ "%.2f"|format(total_salarios) }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-danger mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Despesas</h5>
+                            <p class="card-text h4">R$ {{ "%.2f"|format(total_despesas) }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white {% if saldo_anual >= 0 %}bg-success{% else %}bg-danger{% endif %} mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Saldo Anual</h5>
+                            <p class="card-text h4">R$ {{ "%.2f"|format(saldo_anual) }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Detalhamento por Mês</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Mês</th>
+                                    <th>Salários</th>
+                                    <th>Outros Ganhos</th>
+                                    <th>Total Ganhos</th>
+                                    <th>Despesas</th>
+                                    <th>Cartão</th>
+                                    <th>Saldo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for mes in range(1, 13) %}
+                                <tr>
+                                    <td>{{ get_month_name(mes) }}</td>
+                                    <td>
+                                        {% set salario_mes = salarios_mensais|selectattr('mes', 'equalto', mes)|list %}
+                                        R$ {{ "%.2f"|format(salario_mes[0].total if salario_mes else 0) }}
+                                    </td>
+                                    <td>
+                                        {% set ganho_mes = ganhos_mensais|selectattr('mes', 'equalto', mes)|list %}
+                                        {% set salario_mes = salarios_mensais|selectattr('mes', 'equalto', mes)|list %}
+                                        R$ {{ "%.2f"|format((ganho_mes[0].total if ganho_mes else 0) - (salario_mes[0].total if salario_mes else 0)) }}
+                                    </td>
+                                    <td>
+                                        {% set ganho_mes = ganhos_mensais|selectattr('mes', 'equalto', mes)|list %}
+                                        R$ {{ "%.2f"|format(ganho_mes[0].total if ganho_mes else 0) }}
+                                    </td>
+                                    <td>
+                                        {% set despesa_mes = despesas_mensais|selectattr('mes', 'equalto', mes)|list %}
+                                        R$ {{ "%.2f"|format(despesa_mes[0].total if despesa_mes else 0) }}
+                                    </td>
+                                    <td>
+                                        {% set cartao_mes = cartao_mensal|selectattr('mes', 'equalto', mes)|list %}
+                                        R$ {{ "%.2f"|format(cartao_mes[0].total if cartao_mes else 0) }}
+                                    </td>
+                                    <td>
+                                        {% set ganho_mes = ganhos_mensais|selectattr('mes', 'equalto', mes)|list %}
+                                        {% set despesa_mes = despesas_mensais|selectattr('mes', 'equalto', mes)|list %}
+                                        {% set cartao_mes = cartao_mensal|selectattr('mes', 'equalto', mes)|list %}
+                                        {% set saldo_mes = (ganho_mes[0].total if ganho_mes else 0) - 
+                                                          (despesa_mes[0].total if despesa_mes else 0) - 
+                                                          (cartao_mes[0].total if cartao_mes else 0) %}
+                                        <span class="{% if saldo_mes >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                            R$ {{ "%.2f"|format(saldo_mes) }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <a href="{{ url_for('relatorio_anual') }}" class="btn btn-primary">
+                <i class="bi bi-arrow-left"></i> Voltar
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

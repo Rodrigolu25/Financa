@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4>Relatório Mensal - {{ get_month_name(mes) }}/{{ ano }}</h4>
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card text-white bg-success mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Ganhos</h5>
+                            <p class="card-text h4">R$ {{ "%.2f"|format(ganhos) }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-info mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Salários</h5>
+                            <p class="card-text h4">R$ {{ "%.2f"|format(salarios) }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-danger mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Despesas</h5>
+                            <p class="card-text h4">R$ {{ "%.2f"|format(despesas) }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white {% if saldo >= 0 %}bg-success{% else %}bg-danger{% endif %} mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Saldo Final</h5>
+                            <p class="card-text h4">R$ {{ "%.2f"|format(saldo) }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Detalhamento</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Ganhos</h6>
+                            <ul class="list-group">
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Salários
+                                    <span class="badge bg-primary rounded-pill">R$ {{ "%.2f"|format(salarios) }}</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Outros Ganhos
+                                    <span class="badge bg-primary rounded-pill">R$ {{ "%.2f"|format(ganhos - salarios) }}</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Gastos</h6>
+                            <ul class="list-group">
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Despesas
+                                    <span class="badge bg-danger rounded-pill">R$ {{ "%.2f"|format(despesas) }}</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Cartão de Crédito
+                                    <span class="badge bg-warning rounded-pill">R$ {{ "%.2f"|format(cartao) }}</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Donativos
+                                    <span class="badge bg-secondary rounded-pill">R$ {{ "%.2f"|format(donativos) }}</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <a href="{{ url_for('relatorio_mensal') }}" class="btn btn-primary">
+                <i class="bi bi-arrow-left"></i> Voltar
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

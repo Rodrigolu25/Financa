@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4>Selecionar Ano</h4>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('relatorio_anual') }}">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Ano</label>
+                        <select class="form-select" name="ano" required>
+                            {% for ano in range(now.year-5, now.year+1) %}
+                                <option value="{{ ano }}" {% if ano == now.year %}selected{% endif %}>{{ ano }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search"></i> Gerar Relatório
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
