@@ -12,24 +12,28 @@
                     <div class="col-md-6">
                         <label class="form-label">Mês</label>
                         <select class="form-select" name="mes" required>
-                            {% for mes in range(1, 13) %}
-                                <option value="{{ mes }}" {% if mes == now.month %}selected{% endif %}>
-                                    {{ mes }} - {{ ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'][mes-1] }}
-                                </option>
+                            {% for mes_num in range(1, 13) %}
+                            <option value="{{ mes_num }}" {% if mes_num == now.month %}selected{% endif %}>
+                                {{ mes_num }} - {{ [
+                                    'Janeiro', 'Fevereiro', 'Março', 'Abril',
+                                    'Maio', 'Junho', 'Julho', 'Agosto',
+                                    'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+                                ][mes_num-1] }}
+                            </option>
                             {% endfor %}
                         </select>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Ano</label>
                         <select class="form-select" name="ano" required>
-                            {% for ano in range(now.year-5, now.year+1) %}
-                                <option value="{{ ano }}" {% if ano == now.year %}selected{% endif %}>{{ ano }}</option>
+                            {% for ano in range(now.year-2, now.year+1) %}
+                            <option value="{{ ano }}" {% if ano == now.year %}selected{% endif %}>{{ ano }}</option>
                             {% endfor %}
                         </select>
                     </div>
                     <div class="col-12">
                         <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-search"></i> Gerar Relatório
+                            <i class="bi bi-graph-up"></i> Gerar Relatório
                         </button>
                     </div>
                 </div>

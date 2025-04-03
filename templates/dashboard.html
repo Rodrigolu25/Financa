@@ -1,89 +1,96 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-3">
-        <div class="card text-white bg-success mb-3">
-            <div class="card-header">Total Ganhos</div>
-            <div class="card-body">
-                <h5 class="card-title">R$ {{ "%.2f"|format(total_ganhos) }}</h5>
-                <p class="card-text small">Incluindo salários: R$ {{ "%.2f"|format(total_salarios) }}</p>
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card text-white bg-success mb-3 total-card">
+                <div class="card-header">Total Ganhos</div>
+                <div class="card-body">
+                    <h5 class="card-title">R$ {{ "%.2f"|format(total_ganhos) }}</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-danger mb-3 total-card">
+                <div class="card-header">Total Despesas</div>
+                <div class="card-body">
+                    <h5 class="card-title">R$ {{ "%.2f"|format(total_despesas) }}</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning mb-3 total-card">
+                <div class="card-header">Cartão de Crédito</div>
+                <div class="card-body">
+                    <h5 class="card-title">R$ {{ "%.2f"|format(total_cartao) }}</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info mb-3 total-card">
+                <div class="card-header">Saldo Atual</div>
+                <div class="card-body">
+                    <h5 class="card-title">R$ {{ "%.2f"|format(saldo) }}</h5>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-danger mb-3">
-            <div class="card-header">Total Despesas</div>
-            <div class="card-body">
-                <h5 class="card-title">R$ {{ "%.2f"|format(total_despesas) }}</h5>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-warning mb-3">
-            <div class="card-header">Cartão de Crédito</div>
-            <div class="card-body">
-                <h5 class="card-title">R$ {{ "%.2f"|format(total_cartao) }}</h5>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-info mb-3">
-            <div class="card-header">Saldo Atual</div>
-            <div class="card-body">
-                <h5 class="card-title">R$ {{ "%.2f"|format(saldo) }}</h5>
-            </div>
-        </div>
-    </div>
-</div>
 
-<div class="row mt-4">
-    <div class="col-md-12">
-        <div class="card">
-            <div class="card-header">
-                <h5>Últimas Movimentações</h5>
-            </div>
-            <div class="card-body">
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Data</th>
-                            <th>Tipo</th>
-                            <th>Descrição</th>
-                            <th>Valor</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for mov in movimentacoes %}
-                        <tr>
-                            <td>{{ mov.data.strftime('%d/%m/%Y') }}</td>
-                            <td>
-                                {% if mov.__class__.__name__ == 'Ganho' %}
-                                    <span class="badge bg-success">Ganho</span>
-                                {% elif mov.__class__.__name__ == 'Despesa' %}
-                                    <span class="badge bg-danger">Despesa</span>
-                                {% elif mov.__class__.__name__ == 'CartaoCredito' %}
-                                    <span class="badge bg-warning">Cartão</span>
-                                {% else %}
-                                    <span class="badge bg-info">Donativo</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if mov.__class__.__name__ == 'Ganho' %}
-                                    {{ mov.origem }}
-                                {% elif mov.__class__.__name__ == 'Despesa' %}
-                                    {{ mov.categoria }}
-                                {% elif mov.__class__.__name__ == 'CartaoCredito' %}
-                                    {{ mov.parcela }}
-                                {% else %}
-                                    {{ mov.instituicao }}
-                                {% endif %}
-                            </td>
-                            <td>R$ {{ "%.2f"|format(mov.valor) }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Últimas Movimentações</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Tipo</th>
+                                <th>Descrição</th>
+                                <th>Valor</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for mov in movimentacoes %}
+                            <tr>
+                                <td>{{ mov.data.strftime('%d/%m/%Y') }}</td>
+                                <td>
+                                    {% if mov.__class__.__name__ == 'Ganho' %}
+                                        <span class="badge bg-success">Ganho</span>
+                                    {% elif mov.__class__.__name__ == 'Despesa' %}
+                                        <span class="badge bg-danger">Despesa</span>
+                                    {% elif mov.__class__.__name__ == 'CartaoCredito' %}
+                                        <span class="badge bg-warning">Cartão</span>
+                                    {% else %}
+                                        <span class="badge bg-info">Donativo</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if mov.__class__.__name__ == 'Ganho' %}
+                                        {{ mov.origem }} - {{ mov.descricao if mov.descricao else '' }}
+                                    {% elif mov.__class__.__name__ == 'Despesa' %}
+                                        {{ mov.categoria }} - {{ mov.descricao if mov.descricao else '' }}
+                                    {% elif mov.__class__.__name__ == 'CartaoCredito' %}
+                                        {{ mov.parcela }} - {{ mov.descricao if mov.descricao else '' }}
+                                    {% else %}
+                                        {{ mov.instituicao }} - {{ mov.descricao if mov.descricao else '' }}
+                                    {% endif %}
+                                </td>
+                                <td>R$ {{ "%.2f"|format(mov.valor) }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-4">
+                                    Nenhuma movimentação encontrada
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>

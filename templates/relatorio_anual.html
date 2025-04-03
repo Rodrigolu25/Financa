@@ -46,18 +46,18 @@
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="card text-white bg-info mb-3">
-                        <div class="card-body">
-                            <h5 class="card-title">Total Salários</h5>
-                            <p class="card-text h4">R$ {{ "%.2f"|format(total_salarios) }}</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
                     <div class="card text-white bg-danger mb-3">
                         <div class="card-body">
                             <h5 class="card-title">Total Despesas</h5>
                             <p class="card-text h4">R$ {{ "%.2f"|format(total_despesas) }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-warning mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Cartão de Crédito</h5>
+                            <p class="card-text h4">R$ {{ "%.2f"|format(total_cartao) }}</p>
                         </div>
                     </div>
                 </div>
@@ -81,9 +81,7 @@
                             <thead>
                                 <tr>
                                     <th>Mês</th>
-                                    <th>Salários</th>
-                                    <th>Outros Ganhos</th>
-                                    <th>Total Ganhos</th>
+                                    <th>Ganhos</th>
                                     <th>Despesas</th>
                                     <th>Cartão</th>
                                     <th>Saldo</th>
@@ -93,15 +91,6 @@
                                 {% for mes in range(1, 13) %}
                                 <tr>
                                     <td>{{ get_month_name(mes) }}</td>
-                                    <td>
-                                        {% set salario_mes = salarios_mensais|selectattr('mes', 'equalto', mes)|list %}
-                                        R$ {{ "%.2f"|format(salario_mes[0].total if salario_mes else 0) }}
-                                    </td>
-                                    <td>
-                                        {% set ganho_mes = ganhos_mensais|selectattr('mes', 'equalto', mes)|list %}
-                                        {% set salario_mes = salarios_mensais|selectattr('mes', 'equalto', mes)|list %}
-                                        R$ {{ "%.2f"|format((ganho_mes[0].total if ganho_mes else 0) - (salario_mes[0].total if salario_mes else 0)) }}
-                                    </td>
                                     <td>
                                         {% set ganho_mes = ganhos_mensais|selectattr('mes', 'equalto', mes)|list %}
                                         R$ {{ "%.2f"|format(ganho_mes[0].total if ganho_mes else 0) }}

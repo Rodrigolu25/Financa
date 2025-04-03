@@ -26,20 +26,21 @@
 
                 <div class="mb-3">
                     <label for="data" class="form-label">Data *</label>
-                    <input type="date" class="form-control" id="data" name="data" required>
+                    <input type="date" class="form-control" id="data" name="data" value="{{ now.strftime('%Y-%m-%d') }}" required>
                 </div>
 
                 <div class="mb-3">
-                    <label for="descricao" class="form-label">Descrição</label>
-                    <input type="text" class="form-control" id="descricao" name="descricao">
+                    <label for="descricao" class="form-label">Descrição Detalhada</label>
+                    <textarea class="form-control" id="descricao" name="descricao" rows="3" placeholder="Descreva detalhadamente esta movimentação"></textarea>
                 </div>
 
                 <div id="ganhoFields" class="mb-3" style="display: none;">
                     <label for="origem" class="form-label">Origem do Ganho *</label>
                     <select class="form-select" id="origem" name="origem">
                         <option value="">Selecione...</option>
-                        <option value="Restaurante Fixo">Restaurante Fixo</option>
-                        <option value="iFood">iFood</option>
+                        <option value="Salário">Salário</option>
+                        <option value="Freelance">Freelance</option>
+                        <option value="Investimentos">Investimentos</option>
                         <option value="Outros">Outros</option>
                     </select>
                 </div>
@@ -86,23 +87,26 @@
 </div>
 
 <script>
-document.getElementById('tipo').addEventListener('change', function() {
-    // Esconde todos os campos específicos
-    document.getElementById('ganhoFields').style.display = 'none';
-    document.getElementById('despesaFields').style.display = 'none';
-    document.getElementById('cartaoFields').style.display = 'none';
-    document.getElementById('donativoFields').style.display = 'none';
-    
-    // Mostra apenas os campos do tipo selecionado
-    if (this.value === 'ganho') {
-        document.getElementById('ganhoFields').style.display = 'block';
-    } else if (this.value === 'despesa') {
-        document.getElementById('despesaFields').style.display = 'block';
-    } else if (this.value === 'cartao') {
-        document.getElementById('cartaoFields').style.display = 'block';
-    } else if (this.value === 'donativo') {
-        document.getElementById('donativoFields').style.display = 'block';
-    }
+document.addEventListener('DOMContentLoaded', function() {
+    // Mostrar campos específicos conforme o tipo selecionado
+    document.getElementById('tipo').addEventListener('change', function() {
+        // Esconde todos os campos
+        document.getElementById('ganhoFields').style.display = 'none';
+        document.getElementById('despesaFields').style.display = 'none';
+        document.getElementById('cartaoFields').style.display = 'none';
+        document.getElementById('donativoFields').style.display = 'none';
+        
+        // Mostra os campos do tipo selecionado
+        if (this.value === 'ganho') {
+            document.getElementById('ganhoFields').style.display = 'block';
+        } else if (this.value === 'despesa') {
+            document.getElementById('despesaFields').style.display = 'block';
+        } else if (this.value === 'cartao') {
+            document.getElementById('cartaoFields').style.display = 'block';
+        } else if (this.value === 'donativo') {
+            document.getElementById('donativoFields').style.display = 'block';
+        }
+    });
 });
 
 function toggleNovaCategoria() {

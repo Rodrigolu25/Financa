@@ -17,18 +17,18 @@
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="card text-white bg-info mb-3">
-                        <div class="card-body">
-                            <h5 class="card-title">Salários</h5>
-                            <p class="card-text h4">R$ {{ "%.2f"|format(salarios) }}</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
                     <div class="card text-white bg-danger mb-3">
                         <div class="card-body">
                             <h5 class="card-title">Total Despesas</h5>
                             <p class="card-text h4">R$ {{ "%.2f"|format(despesas) }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-warning mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Cartão de Crédito</h5>
+                            <p class="card-text h4">R$ {{ "%.2f"|format(cartao) }}</p>
                         </div>
                     </div>
                 </div>
@@ -52,12 +52,8 @@
                             <h6>Ganhos</h6>
                             <ul class="list-group">
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    Salários
-                                    <span class="badge bg-primary rounded-pill">R$ {{ "%.2f"|format(salarios) }}</span>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
                                     Outros Ganhos
-                                    <span class="badge bg-primary rounded-pill">R$ {{ "%.2f"|format(ganhos - salarios) }}</span>
+                                    <span class="badge bg-primary rounded-pill">R$ {{ "%.2f"|format(ganhos) }}</span>
                                 </li>
                             </ul>
                         </div>
