@@ -5,6 +5,7 @@ from sqlalchemy import func, extract
 import os
 from dotenv import load_dotenv
 
+# Carrega variáveis de ambiente
 load_dotenv()
 
 app = Flask(__name__)
@@ -14,7 +15,7 @@ app.secret_key = os.getenv('SECRET_KEY', 'dev-secret-key')
 
 db = SQLAlchemy(app)
 
-# Models
+# Modelos
 class Ganho(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     valor = db.Column(db.Float, nullable=False)
@@ -52,6 +53,7 @@ class CategoriaDespesa(db.Model):
     nome = db.Column(db.String(50), nullable=False, unique=True)
     ativo = db.Column(db.Boolean, default=True)
 
+# Cria o banco de dados e categorias padrão
 with app.app_context():
     db.create_all()
     default_categories = ['Alimentação', 'Transporte', 'Moradia', 'Lazer', 'Saúde', 'Outros']
@@ -60,11 +62,13 @@ with app.app_context():
             db.session.add(CategoriaDespesa(nome=cat))
     db.session.commit()
 
+# Helper functions
 def get_month_name(month_num):
     months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
               'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
     return months[month_num - 1]
 
+# Rotas
 @app.route('/')
 def dashboard():
     try:
@@ -89,7 +93,8 @@ def dashboard():
                                   .order_by(model.data.desc())
                                   .limit(5)
                                   .all())
-            except:
+            except Exception as e:
+                app.logger.error(f"Erro ao carregar {model.__name__}: {str(e)}")
                 continue
 
         transactions.sort(key=lambda x: x.data if x.data else date.min, reverse=True)
@@ -128,7 +133,13 @@ def adicionar_movimentacao():
             
             if tipo == 'ganho':
                 origem = request.form['origem']
-                db.session.add(Ganho(valor=valor, data=data, origem=origem, descricao=descricao, ativo=True))
+                nova_movimentacao = Ganho(
+                    valor=valor, 
+                    data=data, 
+                    origem=origem, 
+                    descricao=descricao,
+                    ativo=True
+                )
             elif tipo == 'despesa':
                 categoria = request.form['categoria']
                 
@@ -141,32 +152,57 @@ def adicionar_movimentacao():
                             db.session.commit()
                         categoria = nova_categoria
                     else:
-                        new_cat = CategoriaDespesa(nome=nova_categoria)
+                        new_cat = CategoriaDespesa(nome=nova_categoria, ativo=True)
                         db.session.add(new_cat)
                         db.session.commit()
                         categoria = nova_categoria
                 
-                db.session.add(Despesa(valor=valor, data=data, categoria=categoria, descricao=descricao, ativo=True))
+                nova_movimentacao = Despesa(
+                    valor=valor, 
+                    data=data, 
+                    categoria=categoria, 
+                    descricao=descricao,
+                    ativo=True
+                )
             elif tipo == 'cartao':
                 parcela = request.form['parcela']
-                db.session.add(CartaoCredito(valor=valor, data=data, parcela=parcela, descricao=descricao, ativo=True))
+                nova_movimentacao = CartaoCredito(
+                    valor=valor, 
+                    data=data, 
+                    parcela=parcela, 
+                    descricao=descricao,
+                    ativo=True
+                )
             elif tipo == 'donativo':
                 instituicao = request.form['instituicao']
-                db.session.add(Donativo(valor=valor, data=data, instituicao=instituicao, descricao=descricao, ativo=True))
+                nova_movimentacao = Donativo(
+                    valor=valor, 
+                    data=data, 
+                    instituicao=instituicao, 
+                    descricao=descricao,
+                    ativo=True
+                )
+            else:
+                flash('Tipo de movimentação inválido', 'danger')
+                return redirect(url_for('adicionar_movimentacao'))
             
+            db.session.add(nova_movimentacao)
             db.session.commit()
             flash('Movimentação registrada com sucesso!', 'success')
             return redirect(url_for('dashboard'))
         
-        except ValueError:
-            flash('Valor inválido! Use números para o valor.', 'danger')
-        except KeyError as e:
-            flash(f'Campo obrigatório faltando: {str(e)}', 'danger')
+        except ValueError as ve:
+            flash(f'Valor inválido! {str(ve)}', 'danger')
+        except KeyError as ke:
+            flash(f'Campo obrigatório faltando: {str(ke)}', 'danger')
         except Exception as e:
             db.session.rollback()
             flash(f'Erro ao salvar: {str(e)}', 'danger')
+            app.logger.error(f"Erro ao adicionar movimentação: {str(e)}", exc_info=True)
     
-    return render_template('adicionar_movimentacao.html', categorias=categories, now=datetime.now())
+    return render_template('adicionar_movimentacao.html', 
+                         categorias=categories, 
+                         now=datetime.now())
 
 @app.route('/extrato')
 def extrato():
@@ -175,18 +211,31 @@ def extrato():
         movimentacoes = []
         
         if tipo in ['todos', 'ganhos']:
-            movimentacoes.extend(Ganho.query.filter(Ganho.ativo == True).order_by(Ganho.data.desc()).all())
+            movimentacoes.extend(Ganho.query.filter(Ganho.ativo == True)
+                               .order_by(Ganho.data.desc())
+                               .all())
         if tipo in ['todos', 'despesas']:
-            movimentacoes.extend(Despesa.query.filter(Despesa.ativo == True).order_by(Despesa.data.desc()).all())
+            movimentacoes.extend(Despesa.query.filter(Despesa.ativo == True)
+                               .order_by(Despesa.data.desc())
+                               .all())
         if tipo in ['todos', 'cartao']:
-            movimentacoes.extend(CartaoCredito.query.filter(CartaoCredito.ativo == True).order_by(CartaoCredito.data.desc()).all())
+            movimentacoes.extend(CartaoCredito.query.filter(CartaoCredito.ativo == True)
+                               .order_by(CartaoCredito.data.desc())
+                               .all())
         if tipo in ['todos', 'donativos']:
-            movimentacoes.extend(Donativo.query.filter(Donativo.ativo == True).order_by(Donativo.data.desc()).all())
+            movimentacoes.extend(Donativo.query.filter(Donativo.ativo == True)
+                               .order_by(Donativo.data.desc())
+                               .all())
         
-        return render_template('extrato.html', movimentacoes=movimentacoes, now=datetime.now())
+        return render_template('extrato.html', 
+                            movimentacoes=movimentacoes,
+                            now=datetime.now())
     except Exception as e:
         flash(f'Erro ao carregar extrato: {str(e)}', 'danger')
-        return render_template('extrato.html', movimentacoes=[], now=datetime.now())
+        app.logger.error(f"Erro no extrato: {str(e)}", exc_info=True)
+        return render_template('extrato.html', 
+                            movimentacoes=[],
+                            now=datetime.now())
 
 @app.route('/relatorios')
 def relatorios():
@@ -199,7 +248,6 @@ def relatorio_mensal():
             mes = int(request.form['mes'])
             ano = int(request.form['ano'])
             
-            # Consultas ao banco de dados
             ganhos = db.session.query(func.sum(Ganho.valor))\
                 .filter(
                     extract('month', Ganho.data) == mes,
@@ -243,9 +291,12 @@ def relatorio_mensal():
         
         except Exception as e:
             flash(f'Erro ao gerar relatório: {str(e)}', 'danger')
+            app.logger.error(f"Erro no relatório mensal: {str(e)}", exc_info=True)
             return redirect(url_for('relatorio_mensal'))
     
-    return render_template('selecionar_mes_ano.html', now=datetime.now())
+    return render_template('selecionar_mes_ano.html', 
+                         tipo='mensal', 
+                         now=datetime.now())
 
 @app.route('/relatorio_anual', methods=['GET', 'POST'])
 def relatorio_anual():
@@ -285,10 +336,10 @@ def relatorio_anual():
                 Donativo.ativo == True
             ).group_by('mes').order_by('mes').all()
             
-            total_ganhos = sum([g.total for g in ganhos_mensais])
-            total_despesas = sum([d.total for d in despesas_mensais])
-            total_cartao = sum([c.total for c in cartao_mensal])
-            total_donativos = sum([d.total for d in donativos_mensal])
+            total_ganhos = sum([g.total for g in ganhos_mensais if g.total])
+            total_despesas = sum([d.total for d in despesas_mensais if d.total])
+            total_cartao = sum([c.total for c in cartao_mensal if c.total])
+            total_donativos = sum([d.total for d in donativos_mensal if d.total])
             saldo_anual = total_ganhos - total_despesas - total_cartao - total_donativos
             
             return render_template('relatorio_anual.html',
@@ -307,35 +358,41 @@ def relatorio_anual():
         
         except Exception as e:
             flash(f'Erro ao gerar relatório: {str(e)}', 'danger')
+            app.logger.error(f"Erro no relatório anual: {str(e)}", exc_info=True)
             return redirect(url_for('relatorio_anual'))
     
-    return render_template('selecionar_ano.html', tipo='anual', now=datetime.now())
+    return render_template('selecionar_ano.html', 
+                         tipo='anual', 
+                         now=datetime.now())
 
 @app.route('/excluir/<tipo>/<int:id>', methods=['POST'])
 def excluir_movimentacao(tipo, id):
     try:
-        model = {
+        model_map = {
             'ganho': Ganho,
             'despesa': Despesa,
             'cartao': CartaoCredito,
             'donativo': Donativo
-        }.get(tipo.lower())  # Adicionei .lower() para garantir
+        }
         
+        model = model_map.get(tipo.lower())
         if not model:
             return jsonify({'success': False, 'message': 'Tipo inválido'}), 400
         
-        registro = model.query.get(id)
+        registro = db.session.get(model, id)
         if registro:
             registro.ativo = False
             db.session.commit()
             return jsonify({'success': True, 'message': 'Registro excluído com sucesso'})
+        
         return jsonify({'success': False, 'message': 'Registro não encontrado'}), 404
     
     except Exception as e:
         db.session.rollback()
-        app.logger.error(f'Erro ao excluir registro: {str(e)}', exc_info=True)
+        app.logger.error(f"Erro ao excluir registro: {str(e)}", exc_info=True)
         return jsonify({'success': False, 'message': str(e)}), 500
-    
 
 if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
