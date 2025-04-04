@@ -642,7 +642,4 @@ if name == 'main':
 
 app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
 
-eu estou com um problema toda vez que ficou um tempo sem entrar no meu site ou link que fiz pelo render o que coloquei no meus ganhos despesas ou outra qualquer informação no site que fiz que o projeto finanças não está ficando guardado
-
-agora faça a correção no app.py de maneira completa
 
