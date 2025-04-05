@@ -1,29 +1,24 @@
+import os
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
+from datetime import datetime, date
 from sqlalchemy import func, extract
-import os
 from dotenv import load_dotenv
 
-# Configuração inicial
 load_dotenv()
+
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///financas.db'
+
+# Configuração do PostgreSQL para Render.com
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///financas.db').replace('postgres://', 'postgresql://')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.secret_key = os.getenv('SECRET_KEY', 'segredo-super-secreto')
+app.secret_key = os.getenv('SECRET_KEY', 'dev-secret-key')
 
 db = SQLAlchemy(app)
 
-# Modelos do banco de dados
-class Despesa(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    valor = db.Column(db.Float, nullable=False)
-    data = db.Column(db.Date, nullable=False)
-    categoria = db.Column(db.String(50), nullable=False)
-    descricao = db.Column(db.String(200))
-    ativo = db.Column(db.Boolean, default=True, nullable=False)
-
+# Modelos otimizados para PostgreSQL
 class Ganho(db.Model):
+    __tablename__ = 'ganhos'
     id = db.Column(db.Integer, primary_key=True)
     valor = db.Column(db.Float, nullable=False)
     data = db.Column(db.Date, nullable=False)
@@ -31,7 +26,17 @@ class Ganho(db.Model):
     descricao = db.Column(db.String(200))
     ativo = db.Column(db.Boolean, default=True, nullable=False)
 
+class Despesa(db.Model):
+    __tablename__ = 'despesas'
+    id = db.Column(db.Integer, primary_key=True)
+    valor = db.Column(db.Float, nullable=False)
+    data = db.Column(db.Date, nullable=False)
+    categoria = db.Column(db.String(50), nullable=False)
+    descricao = db.Column(db.String(200))
+    ativo = db.Column(db.Boolean, default=True, nullable=False)
+
 class CartaoCredito(db.Model):
+    __tablename__ = 'cartoes'
     id = db.Column(db.Integer, primary_key=True)
     valor = db.Column(db.Float, nullable=False)
     data = db.Column(db.Date, nullable=False)
@@ -40,6 +45,7 @@ class CartaoCredito(db.Model):
     ativo = db.Column(db.Boolean, default=True, nullable=False)
 
 class Donativo(db.Model):
+    __tablename__ = 'donativos'
     id = db.Column(db.Integer, primary_key=True)
     valor = db.Column(db.Float, nullable=False)
     data = db.Column(db.Date, nullable=False)
@@ -48,29 +54,22 @@ class Donativo(db.Model):
     ativo = db.Column(db.Boolean, default=True, nullable=False)
 
 class CategoriaDespesa(db.Model):
+    __tablename__ = 'categorias'
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(50), nullable=False, unique=True)
     ativo = db.Column(db.Boolean, default=True)
 
-def reset_database():
+# Inicialização do banco de dados
+def init_db():
     with app.app_context():
-        db.drop_all()
         db.create_all()
+        
+        # Categorias padrão
         default_categories = ['Alimentação', 'Transporte', 'Moradia', 'Lazer', 'Saúde', 'Outros']
         for cat in default_categories:
             if not CategoriaDespesa.query.filter_by(nome=cat).first():
                 db.session.add(CategoriaDespesa(nome=cat))
         db.session.commit()
-        print("Banco de dados resetado com sucesso!")
-
-# Criar banco de dados e tabelas
-with app.app_context():
-    db.create_all()
-    default_categories = ['Alimentação', 'Transporte', 'Moradia', 'Lazer', 'Saúde', 'Outros']
-    for cat in default_categories:
-        if not CategoriaDespesa.query.filter_by(nome=cat).first():
-            db.session.add(CategoriaDespesa(nome=cat))
-    db.session.commit()
 
 # Funções auxiliares
 def get_month_name(month_num):
@@ -108,7 +107,7 @@ def dashboard():
                             now=datetime.now())
     
     except Exception as e:
-        flash('Erro ao carregar dados: ' + str(e), 'danger')
+        flash(f'Erro ao carregar dados: {str(e)}', 'danger')
         return render_template('dashboard.html',
                             total_ganhos=0,
                             total_despesas=0,
@@ -186,6 +185,10 @@ def adicionar_movimentacao():
             flash(f'Erro ao salvar: {str(e)}', 'danger')
     
     return render_template('adicionar_movimentacao.html', categorias=categories, now=datetime.now())
+
+# ... (adicionar outras rotas conforme necessário)
+
+
 
 @app.route('/extrato')
 def extrato():
@@ -352,9 +355,5 @@ def excluir_movimentacao(tipo, id):
         return jsonify({'success': False, 'message': str(e)}), 500
 
 if __name__ == '__main__':
-    # ATENÇÃO: Descomente a linha abaixo apenas para resetar o banco na primeira execução
-    #reset_database()  # <-- Descomente esta linha apenas uma vez
-    
-    with app.app_context():
-        db.create_all()  # Isso garante que as tabelas existam
+    init_db()
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
